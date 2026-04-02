@@ -35,7 +35,7 @@ Learning Unlimited, Inc.
 from django.contrib import admin
 from esp.admin import admin_site
 
-from esp.dbmail.models import MessageVars, EmailList, PlainRedirect, MessageRequest, TextOfEmail
+from esp.dbmail.models import MessageVars, EmailList, PlainRedirect, MessageRequest, TextOfEmail, EmailTemplate
 from esp.utils.admin_user_search import default_user_search
 
 class MessageVarsAdmin(admin.ModelAdmin):
@@ -66,3 +66,12 @@ class TextOfEmailAdmin(admin.ModelAdmin):
     date_hierarchy = 'sent'
     list_filter = ('send_from',)
 admin_site.register(TextOfEmail, TextOfEmailAdmin)
+
+from reversion.admin import VersionAdmin
+
+class EmailTemplateAdmin(VersionAdmin):
+    list_display = ('name', 'category', 'creator', 'created_at', 'updated_at', 'is_active')
+    list_filter = ('is_active', 'category', 'created_at')
+    search_fields = ('name', 'description')
+    readonly_fields = ('created_at', 'updated_at')
+admin_site.register(EmailTemplate, EmailTemplateAdmin)

@@ -651,6 +651,44 @@ class PlainRedirect(models.Model):
         ordering=('original',)
 
 
+class EmailTemplate(models.Model):
+    """Stores reusable email template designs created with the GrapesJS template builder.
+
+    Stores both the GrapesJS editor JSON (for future editing) and the
+    compiled MJML->HTML output (for sending).
+    """
+    CATEGORY_CHOICES = [
+        ('announcement', 'Announcement'),
+        ('registration', 'Registration'),
+        ('schedule', 'Schedule'),
+        ('reminder', 'Reminder'),
+        ('newsletter', 'Newsletter'),
+        ('custom', 'Custom'),
+    ]
+
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, default='')
+    category = models.CharField(max_length=32, choices=CATEGORY_CHOICES, default='custom')
+    gjs_data = models.TextField(help_text='GrapesJS editor JSON (components + styles)')
+    html_content = models.TextField(help_text='Compiled HTML output from MJML')
+    mjml_content = models.TextField(blank=True, default='',
+        help_text='Raw MJML markup (for reference)')
+    thumbnail = models.TextField(blank=True, default='',
+        help_text='Base64 data URI for template card preview')
+    creator = AjaxForeignKey(ESPUser, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='email_templates_created')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True,
+        help_text='Inactive templates are hidden from the selector but not deleted')
+
+    class Meta:
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return self.name
+
+
 # Adapted from https://www.djangosnippets.org/snippets/735/
 class CustomSMTPBackend(SMTPEmailBackend):
     """ Simple override of Django's default backend to allow a Return-Path to be specified """

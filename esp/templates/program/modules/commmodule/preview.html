@@ -1,129 +1,444 @@
 {% extends "main.html" %}
 
-{% block title %}Communications Portal{% endblock %}
+{% block title %}Communications Portal — Review Email{% endblock %}
 
 {% block xtrajs %}
 {{block.super}}
-<script type="text/javascript">
-<!--
-
-//-->
-</script>
 {% endblock %}
+
 {% block stylesheets %}
 {{block.super}}
 <style type="text/css">
-.listtable, .listtable th, .listtable td{ border: 1px solid #999; border-collapse: collapse;}
-#divmaintext .unchosen { background-color: #CCC; }
-#divmaintext .chosen { background-color: #FFF; }
-#divmaintext td.notchooser { cursor: pointer }
-#finalsentence { border: 1px solid black; width: 550px; }
+/* ── Preview page styles ────────────────────────────── */
+.commprev-page { max-width: 960px; }
+
+/* Step indicator */
+.commprev-steps {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 28px;
+    padding: 0;
+    list-style: none;
+}
+.commprev-steps li {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    color: #999;
+}
+.commprev-steps li.done { color: #27ae60; }
+.commprev-steps li.active { color: #333; font-weight: 600; }
+.commprev-steps .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    font-size: 12px;
+    font-weight: 700;
+    margin-right: 6px;
+    flex-shrink: 0;
+}
+.commprev-steps li.done .step-num {
+    background: #27ae60;
+    border-color: #27ae60;
+    color: #fff;
+}
+.commprev-steps li.active .step-num {
+    background: #3b7dd8;
+    border-color: #3b7dd8;
+    color: #fff;
+}
+.commprev-steps .step-arrow {
+    margin: 0 12px;
+    color: #ccc;
+    font-size: 16px;
+}
+
+/* Metadata card */
+.commprev-meta {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 0;
+    margin-bottom: 20px;
+}
+.commprev-meta table {
+    width: 100%;
+    margin: 0;
+    border-collapse: collapse;
+}
+.commprev-meta table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+    font-size: 13px;
+    line-height: 1.5;
+}
+.commprev-meta table tr:last-child td { border-bottom: none; }
+.commprev-meta .meta-label {
+    width: 100px;
+    color: #6b7280;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    padding-top: 12px;
+}
+.commprev-meta .meta-value {
+    color: #1f2937;
+    word-break: break-word;
+}
+
+/* Email preview frame */
+.commprev-body-section {
+    margin-bottom: 24px;
+}
+.commprev-body-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+.commprev-iframe-wrap {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fff;
+}
+.commprev-iframe-wrap iframe {
+    width: 100%;
+    min-height: 200px;
+    max-height: 800px;
+    border: none;
+    display: block;
+}
+
+/* Alerts */
+.commprev-page .alert {
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 12px 16px;
+}
+.commprev-page .alert-warning {
+    background: #fffbeb;
+    border: 1px solid #f59e0b;
+    color: #92400e;
+}
+.commprev-page .alert-warning strong { color: #78350f; }
+.commprev-page .alert ul {
+    margin: 6px 0 0 0;
+    padding-left: 18px;
+}
+
+/* Action bar */
+.commprev-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 0;
+    border-top: 1px solid #e5e7eb;
+    margin-top: 8px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.commprev-actions-left { display: flex; align-items: center; gap: 10px; }
+.commprev-actions-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.commprev-actions .btn {
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 5px;
+    line-height: 1.4;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.commprev-actions .btn .glyphicon { font-size: 12px; top: 0; }
+
+.btn-back-editor {
+    background: #fff;
+    border: 1px solid #d1d5db;
+    color: #374151;
+}
+.btn-back-editor:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+    color: #111827;
+}
+
+.btn-test-email {
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    color: #92400e;
+}
+.btn-test-email:hover {
+    background: #fde68a;
+    border-color: #d97706;
+    color: #78350f;
+}
+.btn-test-email:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-send-final {
+    background: #3b7dd8;
+    border: 1px solid #2563eb;
+    color: #fff;
+    padding: 10px 24px !important;
+    font-size: 14px !important;
+}
+.btn-send-final:hover {
+    background: #2563eb;
+    border-color: #1d4ed8;
+    color: #fff;
+}
+
+/* Test email status */
+#test-send-status {
+    font-size: 12px;
+    font-weight: 500;
+    transition: opacity 0.3s;
+}
+
+/* Description */
+.commprev-desc {
+    color: #6b7280;
+    font-size: 13px;
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+/* Recipient count badge */
+.commprev-recipient-badge {
+    display: inline-block;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e40af;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 12px;
+    margin-left: 6px;
+}
 </style>
 {% endblock %}
 
 {% block content %}
 
+<div class="commprev-page">
 
-<h1>Communications Portal</h1>
-<br />
-<h2>Preview</h2>
+    <h1 style="margin-bottom: 4px;">Communications Portal</h1>
 
-<br />
+    <!-- Step indicator -->
+    <ul class="commprev-steps">
+        <li class="done">
+            <span class="step-num">&#10003;</span> Select Recipients
+        </li>
+        <span class="step-arrow">&#8250;</span>
+        <li class="done">
+            <span class="step-num">&#10003;</span> Compose Email
+        </li>
+        <span class="step-arrow">&#8250;</span>
+        <li class="active">
+            <span class="step-num">3</span> Review &amp; Send
+            <span class="commprev-recipient-badge">{{ listcount }} recipient{{ listcount|pluralize }}</span>
+        </li>
+    </ul>
 
-<p>
-Here is a preview of what the email you sent will look like for the first user in the list of
-users to whom you are sending this email.
-<br />
-</p>
-<br />
+    <p class="commprev-desc">
+        Review your email below. This preview shows how it will appear for the first recipient in your list.
+    </p>
 
-<p>
-<strong>From:</strong> {{ from }}
-<br />
-</p>
+    <!-- Warnings -->
+    {% if missing_unsubscribe %}
+    <div class="alert alert-warning" role="alert">
+        <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span>
+        <strong>Missing unsubscribe link.</strong>
+        CAN-SPAM regulations require one for bulk emails. Go back and add the
+        "Unsubscribe Footer" block from the ESP Essentials category.
+    </div>
+    {% endif %}
 
-<p>
-<strong>Reply-To:</strong> {{ replyto }}
-<br />
-</p>
+    {% if other_program_urls %}
+    <div class="alert alert-warning" role="alert">
+        <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span>
+        <strong>Cross-program links detected.</strong>
+        The following URL(s) do not match the current program (<code>{{ program.getUrlBase }}</code>):
+        <ul>
+        {% for prog_url in other_program_urls %}
+            <li><code>{{ prog_url }}</code></li>
+        {% endfor %}
+        </ul>
+        {% if confirm_send_required %}
+        Update the links, or click "Send Anyway" below if they are intentional.
+        {% else %}
+        Consider updating them so recipients see the correct program.
+        {% endif %}
+    </div>
+    {% endif %}
 
-<p>
-<strong>Subject:</strong> {{ subject }}
-<br />
-</p>
+    <!-- Email metadata card -->
+    <div class="commprev-meta">
+        <table>
+            <tr>
+                <td class="meta-label">From</td>
+                <td class="meta-value">{{ from }}</td>
+            </tr>
+            <tr>
+                <td class="meta-label">Reply-To</td>
+                <td class="meta-value">{{ replyto }}</td>
+            </tr>
+            <tr>
+                <td class="meta-label">Subject</td>
+                <td class="meta-value"><strong>{{ subject }}</strong></td>
+            </tr>
+            <tr>
+                <td class="meta-label">Visibility</td>
+                <td class="meta-value">{% if public_view %}Public &mdash; visible on website{% else %}Private &mdash; email only{% endif %}</td>
+            </tr>
+        </table>
+    </div>
 
-<p>
-<strong>Public:</strong> {% if public_view %}Yes{% else %}No{% endif %}
-<br />
-</p>
+    <!-- Email body preview -->
+    <div class="commprev-body-section">
+        <div class="commprev-body-label">Email Body Preview</div>
+        <div class="commprev-iframe-wrap">
+            <iframe srcdoc="{{ rendered_text|join:""|escape }}"></iframe>
+        </div>
+    </div>
 
-{% if other_program_urls %}
-<div class="alert alert-warning" role="alert">
-  <strong>This email contains links that may reference another program.</strong>
-  The following program URL(s) in the subject or body do not match the current program ({{ program.getUrlBase }}):
-  <ul class="mb-0">
-  {% for prog_url in other_program_urls %}
-    <li>{{ prog_url }}</li>
-  {% endfor %}
-  </ul>
-  {% if confirm_send_required %}
-  Please update the links to the current program, or click "Send anyway" below if the links are intentional.
-  {% else %}
-  Consider updating the links so recipients see the current program.
-  {% endif %}
+    <!-- Action bar -->
+    <div class="commprev-actions">
+        <div class="commprev-actions-left">
+            <form action="/manage/{{program.getUrlBase}}/maincomm2" method="post" name="mainback" style="margin: 0;">
+                <input type="hidden" name="filterid" value="{{filterid}}" />
+                <input type="hidden" name="sendto_fn_name" value="{{sendto_fn_name}}" />
+                <input type="hidden" name="from" value="{{from}}" />
+                <input type="hidden" name="replyto" value="{{replyto}}" />
+                <input type="hidden" name="subject" value="{{subject}}" />
+                <input type="hidden" name="body" value="{{body}}" />
+                <input type="hidden" name="template" value="{{template}}" />
+                <input type="hidden" name="editor_mode" value="{{ editor_mode|default:'simple' }}" />
+                <input type="hidden" name="gjs_data" value="{{ gjs_data|default:'' }}" />
+                {% if public_view %}
+                <input type="hidden" name="public_view" value="on" />
+                {% endif %}
+                <input type="hidden" name="listcount" value="{{listcount}}" />
+                <input type="hidden" name="selected" value="{{selected}}" />
+                <button type="submit" class="btn btn-back-editor">
+                    <span class="glyphicon glyphicon-arrow-left"></span> Back to Editor
+                </button>
+            </form>
+        </div>
+
+        <div class="commprev-actions-right">
+            <!-- Send Test Email -->
+            <button type="button" class="btn btn-test-email" id="test-send-btn" onclick="sendTestEmail()">
+                <span class="glyphicon glyphicon-envelope"></span> Send Test Email
+            </button>
+            <span id="test-send-status"></span>
+
+            <!-- Send Final -->
+            <form action="/manage/{{program.getUrlBase}}/commfinal" method="post" name="commfinal" style="margin: 0;">
+                <input type="hidden" name="filterid" value="{{filterid}}" />
+                <input type="hidden" name="sendto_fn_name" value="{{sendto_fn_name}}" />
+                <input type="hidden" name="from" value="{{from}}" />
+                <input type="hidden" name="replyto" value="{{replyto}}" />
+                <input type="hidden" name="subject" value="{{subject}}" />
+                <input type="hidden" name="body" value="{{body}}" />
+                <input type="hidden" name="template" value="{{template}}" />
+                <input type="hidden" name="editor_mode" value="{{ editor_mode|default:'simple' }}" />
+                <input type="hidden" name="gjs_data" value="{{ gjs_data|default:'' }}" />
+                {% if public_view %}
+                <input type="hidden" name="public_view" value="on" />
+                {% endif %}
+                {% if confirm_send_required %}
+                <input type="hidden" name="confirm_send_with_other_program_links" value="1" />
+                {% endif %}
+                <button type="submit" class="btn btn-send-final">
+                    <span class="glyphicon glyphicon-send"></span>
+                    {% if confirm_send_required %}Send Anyway{% else %}Send to {{ listcount }} Recipient{{ listcount|pluralize }}{% endif %}
+                </button>
+            </form>
+        </div>
+    </div>
+
 </div>
-{% endif %}
-
-<br />
-<p>
-<strong>Email body:</strong>
-<br />
-<iframe srcdoc="{{ rendered_text|join:""|escape }}" style="width: 100%; max-height: 800px;"></iframe>
-<br />
-</p>
-
-<br />
-<br />
-<form action="/manage/{{program.getUrlBase}}/maincomm2" method="post" name="mainback">
-<input type="hidden" name="filterid" value="{{filterid}}" />
-<input type="hidden" name="sendto_fn_name" value="{{sendto_fn_name}}" />
-<input type="hidden" name="from" value="{{from}}" />
-<input type="hidden" name="replyto" value="{{replyto}}" />
-<input type="hidden" name="subject" value="{{subject}}" />
-<input type="hidden" name="body" value="{{body}}" />
-<input type="hidden" name="template" value="{{template}}" />
-{% if public_view %}
-<input type="hidden" name="public_view" value="on" />
-{% endif %}
-<input type="hidden" name="listcount" value="{{listcount}}" />
-<input type="hidden" name="selected" value="{{selected}}" />
-<input type="submit" value="Edit Your Email" id="submitform" class="btn btn-default" />
-</form>
-<form action="/manage/{{program.getUrlBase}}/commfinal" method="post" name="mainback">
-<input type="hidden" name="filterid" value="{{filterid}}" />
-<input type="hidden" name="sendto_fn_name" value="{{sendto_fn_name}}" />
-<input type="hidden" name="from" value="{{from}}" />
-<input type="hidden" name="replyto" value="{{replyto}}" />
-<input type="hidden" name="subject" value="{{subject}}" />
-<input type="hidden" name="body" value="{{body}}" />
-<input type="hidden" name="template" value="{{template}}" />
-{% if public_view %}
-<input type="hidden" name="public_view" value="on" />
-{% endif %}
-{% if confirm_send_required %}
-<input type="hidden" name="confirm_send_with_other_program_links" value="1" />
-{% endif %}
-<input type="submit" value="{% if confirm_send_required %}Send anyway{% else %}Send Message!{% endif %}" id="submitform" class="btn btn-primary" />
-</form>
 
 <script>
 $j(function() {
-    $j("iframe").each(function(index, element) {
+    $j(".commprev-iframe-wrap iframe").each(function(index, element) {
         element.onload = function() {
-            element.style.height = element.contentWindow.document.body.scrollHeight + 16 + 'px';
-        }
+            try {
+                var h = element.contentWindow.document.body.scrollHeight;
+                element.style.height = Math.max(h + 16, 200) + 'px';
+            } catch(e) {
+                element.style.height = '400px';
+            }
+        };
     });
 });
+
+function sendTestEmail() {
+    var btn = document.getElementById('test-send-btn');
+    var status = document.getElementById('test-send-status');
+    var origHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="glyphicon glyphicon-refresh"></span> Sending\u2026';
+    status.textContent = '';
+
+    $j.ajax({
+        url: '/manage/{{ program.getUrlBase }}/email_send_test',
+        type: 'POST',
+        data: {
+            subject: $j('form[name="commfinal"] input[name="subject"]').val(),
+            body: $j('form[name="commfinal"] input[name="body"]').val(),
+            from: $j('form[name="commfinal"] input[name="from"]').val(),
+            replyto: $j('form[name="commfinal"] input[name="replyto"]').val()
+        },
+        headers: { 'X-CSRFToken': csrf_token() },
+        success: function(resp) {
+            if (resp.success) {
+                btn.innerHTML = '<span class="glyphicon glyphicon-ok"></span> Sent!';
+                btn.className = 'btn btn-test-email';
+                btn.style.background = '#d1fae5';
+                btn.style.borderColor = '#10b981';
+                btn.style.color = '#065f46';
+                status.textContent = 'Sent to ' + resp.sent_to;
+                status.style.color = '#059669';
+                setTimeout(function() {
+                    btn.innerHTML = origHtml;
+                    btn.style.background = '';
+                    btn.style.borderColor = '';
+                    btn.style.color = '';
+                    btn.disabled = false;
+                }, 4000);
+            } else {
+                status.textContent = resp.error || 'Unknown error';
+                status.style.color = '#dc2626';
+                btn.innerHTML = origHtml;
+                btn.disabled = false;
+            }
+        },
+        error: function() {
+            status.textContent = 'Request failed. Try again.';
+            status.style.color = '#dc2626';
+            btn.innerHTML = origHtml;
+            btn.disabled = false;
+        }
+    });
+}
 </script>
 
 {% endblock %}

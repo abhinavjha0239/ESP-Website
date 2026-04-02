@@ -1,0 +1,53 @@
+/* ESP Email Template Builder — Tour Styles (driver.js overrides) */
+
+/* Override driver.js popover to match ESP branding */
+.driver-popover {
+    font-family: inherit;
+    max-width: 400px;
+}
+
+.driver-popover .driver-popover-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.driver-popover .driver-popover-description {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #555;
+}
+
+/* Primary blue matching ESP's #337ab7 */
+.driver-popover .driver-popover-next-btn,
+.driver-popover .driver-popover-close-btn {
+    background-color: #337ab7;
+    border-color: #2e6da4;
+    text-shadow: none;
+}
+
+.driver-popover .driver-popover-next-btn:hover,
+.driver-popover .driver-popover-close-btn:hover {
+    background-color: #286090;
+    border-color: #204d74;
+}
+
+/* "Take a Tour" button */
+#btn-take-tour {
+    margin-left: 12px;
+    font-size: 12px;
+    padding: 4px 10px;
+}
+
+/* Z-index fix: driver.js overlay must sit above GrapesJS panels */
+.driver-active .driver-overlay {
+    z-index: 10000 !important;
+}
+
+.driver-active .driver-popover {
+    z-index: 10001 !important;
+}
+
+.driver-active .driver-highlighted-element {
+    z-index: 10000 !important;
+}

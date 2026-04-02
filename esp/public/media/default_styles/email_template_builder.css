@@ -1,0 +1,1051 @@
+/* ESP Email Template Builder — GrapesJS Integration Styles */
+
+/* ==================== Step 2 Header ==================== */
+.step2-header {
+    margin-bottom: 12px;
+}
+
+.step2-header h2 {
+    margin-top: 10px;
+    margin-bottom: 8px;
+}
+
+.step2-header h2 small {
+    font-weight: normal;
+    color: #888;
+}
+
+.step2-header .alert-compact {
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.step2-header .recipient-summary {
+    margin: 4px 0 6px;
+    font-size: 13px;
+    color: #555;
+}
+
+.email-info-toggle {
+    margin-bottom: 4px;
+}
+
+.email-info-toggle a {
+    font-size: 12px;
+    color: #337ab7;
+    text-decoration: none;
+}
+
+.email-info-toggle a:hover {
+    text-decoration: underline;
+}
+
+/* ==================== Compact Email Fields ==================== */
+.email-fields-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.email-field {
+    flex: 1;
+    min-width: 180px;
+}
+
+.email-field-subject {
+    flex: 1.5;
+}
+
+.email-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 3px;
+    color: #444;
+}
+
+.email-field label small {
+    font-weight: normal;
+    color: #999;
+}
+
+.email-field input {
+    width: 100%;
+    padding: 5px 8px;
+    font-size: 13px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-sizing: border-box;
+}
+
+.email-field input:focus {
+    border-color: #337ab7;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(51, 122, 183, 0.15);
+}
+
+.email-options-row {
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: #666;
+}
+
+.email-options-row .checkbox-inline {
+    font-weight: normal;
+}
+
+/* ==================== Editor Mode Toggle ==================== */
+#editor-mode-toggle {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#editor-mode-toggle .btn-group .btn {
+    padding: 5px 14px;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+#editor-mode-toggle .btn-group .btn.active {
+    background-color: #337ab7;
+    color: #fff;
+    border-color: #2e6da4;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* ==================== Template Selector ==================== */
+#template-selector {
+    background: #f9fafb;
+    padding: 16px 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    margin-bottom: 12px;
+}
+
+#template-selector h4 {
+    margin-top: 0;
+    margin-bottom: 4px;
+    font-weight: 600;
+    font-size: 15px;
+    color: #333;
+}
+
+.gallery-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 22px;
+    font-weight: bold;
+    color: #999;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 4px;
+    z-index: 1;
+}
+
+.gallery-close-btn:hover {
+    color: #333;
+}
+
+#template-selector > p {
+    font-size: 12px;
+    margin-bottom: 12px;
+}
+
+/* Category filter tabs */
+#template-category-tabs {
+    margin-bottom: 12px;
+}
+
+#template-category-tabs .btn {
+    margin-right: 4px;
+    margin-bottom: 4px;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11px;
+}
+
+#template-category-tabs .btn.active {
+    background-color: #337ab7;
+    color: #fff;
+    border-color: #2e6da4;
+}
+
+/* Template gallery grid */
+#template-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+/* Template card */
+.template-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fff;
+    transition: box-shadow 0.2s ease, transform 0.15s ease;
+    display: flex;
+    flex-direction: column;
+    cursor: default;
+}
+
+.template-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    transform: translateY(-1px);
+}
+
+.template-card-header {
+    height: 6px;
+    flex-shrink: 0;
+}
+
+.template-card-header.cat-announcement { background: #2c3e50; }
+.template-card-header.cat-registration { background: #e74c3c; }
+.template-card-header.cat-schedule { background: #27ae60; }
+.template-card-header.cat-reminder { background: #f39c12; }
+.template-card-header.cat-newsletter { background: #8e44ad; }
+.template-card-header.cat-custom { background: #3498db; }
+
+.template-card-thumb {
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+    border-bottom: 1px solid #eee;
+    overflow: hidden;
+}
+
+.template-card-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.template-card-thumb .thumb-placeholder {
+    color: #aaa;
+    font-size: 24px;
+}
+
+.template-card-body {
+    padding: 8px 10px;
+    flex: 1;
+}
+
+.template-card-body .card-title {
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 0 4px;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.template-card-body .card-badges {
+    margin-bottom: 4px;
+}
+
+.template-card-body .card-badges .label {
+    font-size: 9px;
+    font-weight: 500;
+    margin-right: 2px;
+    padding: 2px 5px;
+}
+
+.template-card-body .card-desc {
+    font-size: 10px;
+    color: #777;
+    line-height: 1.3;
+    margin-top: 2px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.template-card-body .card-creator {
+    font-size: 9px;
+    color: #999;
+    margin-top: 2px;
+    font-style: italic;
+}
+
+.template-card-footer {
+    padding: 6px 10px;
+    border-top: 1px solid #f0f0f0;
+    background: #fafafa;
+}
+
+.template-card-footer .btn {
+    padding: 2px 8px;
+    font-size: 11px;
+}
+
+/* "Start from Scratch" button */
+#template-selector > .btn-start-blank {
+    margin-top: 4px;
+    font-size: 12px;
+}
+
+/* ==================== Builder Container ==================== */
+#builder-container {
+    margin-bottom: 10px;
+}
+
+/* ==================== Builder Toolbar — Modern Compact ==================== */
+.builder-toolbar {
+    background: #fff;
+    padding: 5px 12px;
+    border: 1px solid #e0e0e0;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.builder-toolbar .toolbar-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 32px;
+}
+
+.builder-toolbar .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.builder-toolbar .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.builder-toolbar .toolbar-right .btn-group {
+    vertical-align: middle;
+}
+
+/* Toolbar buttons — smaller, cleaner */
+.builder-toolbar .btn-xs {
+    padding: 3px 8px;
+    font-size: 11px;
+    border-radius: 4px;
+    line-height: 1.4;
+    border-color: #ddd;
+}
+
+.builder-toolbar .btn-xs:hover {
+    background-color: #f0f7ff;
+    border-color: #337ab7;
+    color: #337ab7;
+}
+
+.builder-toolbar .btn-xs .glyphicon {
+    font-size: 11px;
+}
+
+/* Responsive preview buttons in toolbar */
+.builder-toolbar .device-btn-group .btn {
+    padding: 2px 7px;
+    font-size: 11px;
+}
+
+.builder-toolbar .device-btn-group .btn.active {
+    background-color: #337ab7;
+    color: #fff;
+    border-color: #2e6da4;
+}
+
+/* ==================== GrapesJS Editor — Taller & Immersive ==================== */
+#gjs-editor {
+    width: 100%;
+    min-height: 700px;
+    border: 1px solid #e0e0e0;
+    border-radius: 0 0 6px 6px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Fix canvas width to leave room for the 280px right panel.
+   top: 0 reclaims the 40px GrapesJS reserves for its native toolbar (which we hide). */
+.gjs-cv-canvas {
+    z-index: 1 !important;
+    width: auto !important;
+    right: 280px !important;
+    top: 0 !important;
+}
+
+.gjs-editor-cont {
+    position: relative !important;
+}
+
+.gjs-pn-panels {
+    z-index: 2 !important;
+}
+
+/* Hide GrapesJS native device dropdown — we use our own buttons */
+.gjs-pn-devices-c {
+    display: none !important;
+}
+
+/* Hide the redundant GrapesJS toolbars (we have our own custom toolbar) */
+.gjs-pn-commands,
+.gjs-pn-options {
+    display: none !important;
+}
+
+/* Hide the Traits tab (gear icon) — not needed for MJML email editing */
+.gjs-pn-views .gjs-pn-btn.fa-cog {
+    display: none !important;
+}
+
+/* ==================== GrapesJS Light Theme Override ==================== */
+
+/* Override GrapesJS CSS variables for light theme */
+#gjs-editor,
+.gjs-editor-cont {
+    --gjs-main-color: #337ab7 !important;
+    --gjs-secondary-color: #f8f9fa !important;
+    --gjs-tertiary-color: #e0e0e0 !important;
+    --gjs-quaternary-color: #fff !important;
+    --gjs-main-dark-color: #eef1f5 !important;
+    --gjs-secondary-dark-color: #fff !important;
+    --gjs-main-light-color: #f8f9fa !important;
+    --gjs-secondary-light-color: #f0f4f8 !important;
+    --gjs-font-color: #333 !important;
+}
+
+/* Override the GrapesJS ".gjs-one-bg" utility class */
+.gjs-one-bg {
+    background-color: #eef1f5 !important;
+}
+
+/* Light canvas background */
+.gjs-cv-canvas {
+    background-color: #eef1f5 !important;
+}
+
+/* Canvas iframe wrapper */
+.gjs-frame-wrapper,
+.gjs-frame-wrapper__top {
+    background-color: #eef1f5 !important;
+}
+
+/* Override theme background/color classes on panel containers */
+.gjs-pn-views-container.gjs-one-bg,
+.gjs-blocks-cs.gjs-one-bg,
+.gjs-pn-views-container .gjs-one-bg {
+    background-color: #f8f9fa !important;
+}
+
+.gjs-pn-views-container.gjs-two-color,
+.gjs-blocks-cs.gjs-two-color,
+.gjs-pn-views-container .gjs-two-color {
+    color: #333 !important;
+}
+
+/* Reorder blocks: MJML building blocks first, ESP variable categories second */
+.gjs-blocks-cs {
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.gjs-blocks-cs > .gjs-blocks-no-cat {
+    order: -1 !important;
+}
+
+.gjs-blocks-cs > .gjs-block-categories {
+    order: 1 !important;
+}
+
+/* ==================== Right Panel — Wider, Cleaner ==================== */
+.gjs-pn-views-container {
+    background-color: #f8f9fa !important;
+    border-left: 1px solid #e0e0e0 !important;
+    box-shadow: -2px 0 12px rgba(0, 0, 0, 0.05) !important;
+    width: 280px !important;
+    min-width: 280px !important;
+}
+
+/* ==================== Panel Tabs — Modern Underline Style ==================== */
+.gjs-pn-views {
+    background-color: #fff !important;
+    border-bottom: 2px solid #eef1f5 !important;
+    padding: 0 !important;
+    display: flex !important;
+    justify-content: stretch !important;
+}
+
+.gjs-pn-views .gjs-pn-btn {
+    background-color: transparent !important;
+    color: #888 !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    border-radius: 0 !important;
+    padding: 10px 6px !important;
+    font-size: 12px !important;
+    flex: 1 !important;
+    text-align: center !important;
+    transition: color 0.2s, border-color 0.2s, background-color 0.2s !important;
+    margin: 0 !important;
+    margin-bottom: -2px !important;
+}
+
+.gjs-pn-views .gjs-pn-btn:hover {
+    color: #337ab7 !important;
+    background-color: #f0f7ff !important;
+}
+
+.gjs-pn-views .gjs-pn-btn.gjs-pn-active {
+    color: #337ab7 !important;
+    border-bottom-color: #337ab7 !important;
+    background-color: #fff !important;
+    font-weight: 600 !important;
+}
+
+/* Tab button icons */
+.gjs-pn-views .gjs-pn-btn .fa,
+.gjs-pn-views .gjs-pn-btn svg {
+    font-size: 13px !important;
+    opacity: 0.7;
+}
+
+.gjs-pn-views .gjs-pn-btn.gjs-pn-active .fa,
+.gjs-pn-views .gjs-pn-btn.gjs-pn-active svg {
+    opacity: 1;
+}
+
+/* Text labels next to tab icons */
+.gjs-pn-views .gjs-pn-btn .gjs-btn-label {
+    font-size: 11px;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+
+/* Panel content area */
+.gjs-pn-views-container .gjs-pn-panel {
+    background-color: #f8f9fa !important;
+    color: #333 !important;
+}
+
+/* ==================== Blocks Panel — Clean Grid ==================== */
+
+/* Block category titles */
+.gjs-blocks-cs .gjs-block-category {
+    background-color: #fff !important;
+    border-bottom: none !important;
+    margin-bottom: 1px !important;
+}
+
+.gjs-blocks-cs .gjs-block-category .gjs-title {
+    background-color: #fff !important;
+    color: #444 !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+    padding: 8px 12px !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+    letter-spacing: 0.03em;
+    text-transform: capitalize;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.15s !important;
+}
+
+.gjs-blocks-cs .gjs-block-category .gjs-title:hover {
+    background-color: #f0f4f8 !important;
+}
+
+/* Category collapse/expand caret */
+.gjs-blocks-cs .gjs-block-category .gjs-caret-icon {
+    color: #aaa !important;
+    transition: transform 0.2s;
+}
+
+/* Blocks container within a category — 2-column grid */
+.gjs-blocks-cs .gjs-block-category .gjs-blocks-no-cat,
+.gjs-blocks-cs .gjs-block-categories .gjs-blocks-no-cat {
+    padding: 6px !important;
+    background-color: #f8f9fa !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 5px !important;
+}
+
+/* Individual blocks — compact card style */
+.gjs-blocks-cs .gjs-block {
+    background-color: #fff !important;
+    color: #555 !important;
+    border: 1px solid #e8e8e8 !important;
+    border-radius: 5px !important;
+    box-shadow: none !important;
+    font-size: 10px !important;
+    min-height: 52px !important;
+    width: calc(50% - 3px) !important;
+    transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s !important;
+    margin: 0 !important;
+    padding: 6px 4px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: grab !important;
+}
+
+.gjs-blocks-cs .gjs-block:hover {
+    border-color: #337ab7 !important;
+    box-shadow: 0 2px 6px rgba(51, 122, 183, 0.15) !important;
+    transform: translateY(-1px);
+}
+
+.gjs-blocks-cs .gjs-block:active {
+    cursor: grabbing !important;
+    transform: scale(0.97);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Block icon/media area */
+.gjs-blocks-cs .gjs-block svg {
+    width: 20px !important;
+    height: 20px !important;
+    fill: #777 !important;
+    margin-bottom: 2px;
+    transition: fill 0.15s;
+}
+
+.gjs-blocks-cs .gjs-block:hover svg {
+    fill: #337ab7 !important;
+}
+
+/* Block label text */
+.gjs-blocks-cs .gjs-block .gjs-block-label {
+    color: #666 !important;
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+}
+
+.gjs-blocks-cs .gjs-block:hover .gjs-block-label {
+    color: #337ab7 !important;
+}
+
+/* ==================== ESP Variable Blocks ==================== */
+
+/* ESP variable blocks: full-width compact list layout */
+.gjs-blocks-cs .gjs-block.esp-var-block {
+    width: 100% !important;
+    min-height: auto !important;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    padding: 5px 10px !important;
+    gap: 6px;
+    border-left: 3px solid #337ab7 !important;
+    border-radius: 4px !important;
+    background: #f8fbff !important;
+}
+
+.gjs-blocks-cs .gjs-block.esp-var-block:hover {
+    border-left-color: #2e6da4 !important;
+    background: #eef5ff !important;
+}
+
+/* ESP block icon — no margin-bottom in row layout */
+.gjs-blocks-cs .gjs-block.esp-var-block svg,
+.gjs-blocks-cs .gjs-block.esp-var-block .gjs-block-media {
+    margin-bottom: 0 !important;
+    flex-shrink: 0;
+    font-size: 13px;
+}
+
+/* ESP block label — no truncation, left-aligned */
+.gjs-blocks-cs .gjs-block.esp-var-block .gjs-block-label {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    text-align: left !important;
+    font-size: 10px !important;
+    font-weight: 500 !important;
+    line-height: 1.3;
+    color: #444 !important;
+}
+
+/* ==================== Style Manager — Modern & Spacious ==================== */
+
+/* Selected element indicator */
+.gjs-sm-sector:first-child::before {
+    display: none;
+}
+
+.gjs-sm-sector {
+    background-color: #fff !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+    margin-bottom: 0 !important;
+}
+
+.gjs-sm-sector .gjs-sm-sector-title {
+    background-color: #fff !important;
+    color: #444 !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
+    padding: 10px 12px !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+    transition: background-color 0.15s !important;
+}
+
+.gjs-sm-sector .gjs-sm-sector-title:hover {
+    background-color: #f5f7fa !important;
+}
+
+/* Open sector styling */
+.gjs-sm-sector.gjs-sm-open .gjs-sm-sector-title {
+    color: #337ab7 !important;
+    background-color: #f0f7ff !important;
+    border-bottom-color: #337ab7 !important;
+}
+
+.gjs-sm-properties {
+    background-color: #fafbfc !important;
+    padding: 8px 10px !important;
+}
+
+.gjs-sm-label {
+    color: #555 !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+}
+
+/* Style manager fields — cleaner inputs */
+.gjs-field {
+    background-color: #fff !important;
+    color: #333 !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+
+.gjs-field:focus-within {
+    border-color: #337ab7 !important;
+    box-shadow: 0 0 0 2px rgba(51, 122, 183, 0.12) !important;
+}
+
+/* Style manager select/dropdown */
+.gjs-sm-select select,
+.gjs-field select {
+    background-color: #fff !important;
+    color: #333 !important;
+}
+
+/* Style manager composite fields (like margin/padding) */
+.gjs-sm-composite {
+    background-color: #f5f7fa !important;
+    border-radius: 4px !important;
+    padding: 6px !important;
+}
+
+/* Color picker button */
+.gjs-sm-color .gjs-field-color-picker {
+    border-radius: 3px !important;
+}
+
+/* ==================== Layers Panel ==================== */
+.gjs-layers {
+    background-color: #f8f9fa !important;
+}
+
+.gjs-layer {
+    background-color: #fff !important;
+    color: #333 !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+    transition: background-color 0.15s !important;
+}
+
+.gjs-layer:hover {
+    background-color: #f0f7ff !important;
+}
+
+.gjs-layer.gjs-selected {
+    background-color: #e3f0ff !important;
+    border-left: 3px solid #337ab7 !important;
+}
+
+.gjs-layer-title {
+    color: #333 !important;
+}
+
+/* ==================== Traits Panel ==================== */
+.gjs-trt-traits {
+    background-color: #f8f9fa !important;
+}
+
+.gjs-trt-trait {
+    color: #333 !important;
+}
+
+.gjs-trt-trait .gjs-label {
+    color: #555 !important;
+}
+
+/* ==================== Canvas Selection Highlight ==================== */
+/* Make the selected element highlight more visible */
+.gjs-cv-canvas .gjs-comp-selected {
+    outline: 2px solid #337ab7 !important;
+    outline-offset: -1px !important;
+}
+
+/* Component toolbar (above selected element) */
+.gjs-toolbar {
+    background-color: #337ab7 !important;
+    border-radius: 4px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.gjs-toolbar .gjs-toolbar-item {
+    color: #fff !important;
+    padding: 3px 5px !important;
+    font-size: 12px !important;
+    border-radius: 3px !important;
+}
+
+.gjs-toolbar .gjs-toolbar-item:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Component badge (type label) */
+.gjs-badge {
+    background-color: #337ab7 !important;
+    color: #fff !important;
+    border-radius: 3px !important;
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+    font-weight: 500 !important;
+}
+
+/* Hover highlight */
+.gjs-highlighter {
+    outline-color: rgba(51, 122, 183, 0.4) !important;
+}
+
+/* ==================== Scrollbar styling for panels ==================== */
+.gjs-pn-views-container ::-webkit-scrollbar {
+    width: 5px;
+}
+
+.gjs-pn-views-container ::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.gjs-pn-views-container ::-webkit-scrollbar-thumb {
+    background: #d0d0d0;
+    border-radius: 3px;
+}
+
+.gjs-pn-views-container ::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+}
+
+/* ==================== Autosave Indicator ==================== */
+#autosave-status {
+    font-style: italic;
+    font-size: 11px;
+    color: #999;
+    white-space: nowrap;
+}
+
+/* ==================== Keyboard shortcut kbd style ==================== */
+#shortcuts-help-modal kbd {
+    display: inline-block;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-family: monospace;
+    color: #333;
+    background-color: #f7f7f7;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-shadow: inset 0 -1px 0 rgba(0,0,0,0.1);
+}
+
+/* ==================== Preview Modal ==================== */
+#preview-modal .modal-body {
+    min-height: 400px;
+}
+
+#preview-iframe {
+    margin: 0 auto;
+    display: block;
+}
+
+/* ==================== Preview Variable Substitution Panel ==================== */
+.preview-var-panel {
+    background: #fafbfc;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 10px 16px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.var-sub-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 6px 12px;
+}
+
+.var-sub-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.var-sub-item label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #555;
+    white-space: nowrap;
+    min-width: 80px;
+    margin: 0;
+}
+
+.var-sub-input {
+    flex: 1;
+    padding: 3px 6px;
+    font-size: 11px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    background: #fff;
+    min-width: 0;
+}
+
+.var-sub-input:focus {
+    border-color: #337ab7;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(51, 122, 183, 0.12);
+}
+
+/* ==================== Compatibility Checker ==================== */
+#compat-results .alert {
+    position: relative;
+}
+
+#compat-results .alert .pull-right {
+    margin-top: 2px;
+}
+
+/* ==================== Save Template Modal ==================== */
+.save-template-modal .modal-body .form-group {
+    margin-bottom: 15px;
+}
+
+/* ==================== Toolbar separator ==================== */
+.toolbar-separator {
+    display: inline-block;
+    width: 1px;
+    height: 16px;
+    background: #ddd;
+    vertical-align: middle;
+    margin: 0 3px;
+}
+
+/* ==================== Email size indicator ==================== */
+.email-size-indicator {
+    font-size: 10px;
+    color: #999;
+    margin-left: 6px;
+    vertical-align: middle;
+    font-weight: 500;
+}
+.email-size-indicator.size-warning { color: #e67e22; font-weight: bold; }
+.email-size-indicator.size-danger { color: #e74c3c; font-weight: bold; }
+
+/* ==================== Brand Color Palette ==================== */
+.brand-color-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    padding: 4px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.brand-color-swatch {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 32px;
+    height: 28px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 0;
+    background: none;
+    flex-shrink: 0;
+}
+
+.brand-color-swatch::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.brand-color-swatch::-webkit-color-swatch {
+    border: none;
+    border-radius: 3px;
+}
+
+.brand-color-swatch::-moz-color-swatch {
+    border: none;
+    border-radius: 3px;
+}
+
+.brand-color-name {
+    flex: 1;
+    padding: 3px 6px;
+    font-size: 12px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    min-width: 0;
+}
+
+.brand-color-hex {
+    width: 80px;
+    padding: 3px 6px;
+    font-size: 11px;
+    font-family: monospace;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    text-align: center;
+}
+
+.brand-color-name:focus,
+.brand-color-hex:focus {
+    border-color: #337ab7;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(51, 122, 183, 0.12);
+}
+
+/* ==================== Go To Preview button ==================== */
+input[value="Go To Preview"] {
+    margin-top: 10px;
+    font-size: 14px;
+    padding: 8px 24px;
+}
+
+/* ==================== "No element selected" hint in Style Manager ==================== */
+.gjs-sm-sectors::before {
+    content: '';
+}

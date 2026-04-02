@@ -4,12 +4,27 @@
 
 {% block xtrajs %}
 {{block.super}}
+<!-- Jodit (Simple Editor) -->
 <script src="//cdnjs.cloudflare.com/ajax/libs/jodit/3.2.36/jodit.min.js"></script>
 <script src="/media/scripts/jodit_base64_upload.js"></script>
+<!-- GrapesJS + MJML Plugin (Template Builder) — served locally to avoid CDN/CORS issues -->
+<!-- Suppress AMD define so UMD builds register as window globals (ESP has a global AMD loader) -->
+<script>window.__espDefine = window.define; delete window.define;</script>
+<script src="/media/scripts/grapes.min.js"></script>
+<script src="/media/scripts/grapesjs-mjml.min.js"></script>
+<script>if (window.__espDefine) { window.define = window.__espDefine; delete window.__espDefine; }</script>
+<script src="/media/scripts/email_template_builder.js"></script>
+<script src="/media/scripts/driver.js.iife.js"></script>
+<script src="/media/scripts/email_tour.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 {% endblock %}
 {% block stylesheets %}
 {{block.super}}
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jodit/3.2.36/jodit.min.css">
+<link rel="stylesheet" href="/media/styles/grapes.min.css">
+<link rel="stylesheet" href="/media/styles/email_template_builder.css">
+<link rel="stylesheet" href="/media/styles/driver.min.css">
+<link rel="stylesheet" href="/media/styles/email_tour.css">
 <style type="text/css">
 .listtable, .listtable th, .listtable td{ border: 1px solid #999; border-collapse: collapse;}
 #divmaintext .unchosen { background-color: #CCC; }
@@ -26,72 +41,394 @@
 {% load main %}
 
 <h1>Communications Portal</h1>
-<br />
-<h2>Step 2:</h2>
 
-<br />
+<div class="step2-header">
+    <h2>Step 2: <small>Compose your email</small></h2>
 
-{% if mailer_warnings %}
-<div class="alert alert-danger">
-    <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span>
-    <strong>Before you send:</strong>
-    <ul style="margin-top: 10px; margin-bottom: 0;">
+    {% if mailer_warnings %}
+    <div class="alert alert-danger alert-compact">
+        <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span>
+        <strong>Before you send:</strong>
         {% for warning in mailer_warnings %}
-            <li>{{ warning }}</li>
+            {{ warning }}{% if not forloop.last %};{% endif %}
         {% endfor %}
-    </ul>
+    </div>
+    {% endif %}
+
+    <p class="recipient-summary">
+    Sending to <strong>{{listcount}}</strong> users{% if selected %} from <strong>{{ selected }}</strong>{% endif %}.
+    <a href="javascript:history.go(-1);">Change recipients</a>
+    </p>
+
+    <div class="email-info-toggle">
+        <a href="#" onclick="$j('#email-info-details').toggle(); $j(this).find('.glyphicon').toggleClass('glyphicon-chevron-down glyphicon-chevron-up'); return false;">
+            <span class="glyphicon glyphicon-chevron-down"></span> Email address rules &amp; tips
+        </a>
+    </div>
+    <div id="email-info-details" style="display:none;">
+        <div class="alert alert-info alert-compact" style="font-size:12px; margin-top:8px;">
+            <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+            "From" must end in <b>@{{ settings.SITE_INFO.1 }}</b>, <b>@learningu.org</b>, or <b>@<i>subdomain</i>.learningu.org</b>.
+            Default: <b>info@{{ current_site.domain }}</b>.
+            <a href="/manage/redirects/">Manage redirects</a>.
+            "Reply-To" can be any address. Both fields support named mailboxes like "{{ default_from }}".
+        </div>
+    </div>
 </div>
-{% endif %}
 
-<p>
-There are <strong>{{listcount}}</strong> distinct users in your query{% if selected %} of <strong>{{ selected }}</strong>{% endif %}. If you feel this to be off, please
-<a href="javascript:history.go(-1);">go back</a> now.<br />
-<br />
-Please write your email message now. Note that you can use <tt>{% templatetag openvariable %} parameter {% templatetag closevariable %}</tt> to enter a parameter
-into the text of the message. You can use the {% templatetag openvariable %}{% templatetag closevariable %} button to choose from the possible parameters.
+<form action="/manage/{{program.getUrlBase}}/commprev" method="post" name="comm2" id="comm2-form">
 
-<div class="alert alert-danger">
-<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
-Note, the "From" email address must end in <b>@{{ settings.SITE_INFO.1 }}</b> (your website), <b>@learningu.org</b>, or a valid subdomain of learningu.org (i.e., <b>@<i>subdomain</i>.learningu.org</b>).
-By default the "From" email address is <b>info@{{ current_site.domain }}</b>, which redirects to the "default" email address from your site's settings.
-You can create and manage your email redirects <a href="/manage/redirects/">here</a>.
-The "Reply-To" field can be any email address (by default it is the same as the "From" email address).
-Both email address fields also support named "mailboxes", such as "{{ default_from }}".
-</div>
-
-<form action="/manage/{{program.getUrlBase}}/commprev" method="post" name="comm2">
-
-<table border="0" cellspacing="0" width="100%">
+  <table border="0" cellspacing="0" width="100%">
   <tr>
   <td>
-  <label for="from">
-  <strong>From:</strong>
-  <small>(If blank: {{ default_from }})</small>
-  </label>
-  <input type="text" size="30" name="from" id="from" value="{{from}}" pattern="(^.+@{{ current_site.domain|regexsite }}$)|(^.+<.+@{{ current_site.domain|regexsite }}>$)|(^.+@(\w+\.)?learningu\.org$)|(^.+<.+@(\w+\.)?learningu\.org>$)"/>
-  <br /><br />
-  <label for="replyto">
-  <strong>Reply-To:</strong>
-  <small>(If blank: same as "From")</small>
-  </label>
-  <input type="text" size="30" name="replyto" id="replyto" value="{{replyto}}" />
-  <br /><br />
-  <label for="subject">
-  <strong>Subject:</strong>
-  </label>
-  <input type="text" size="30" name="subject" id="subject" value="{{subject}}" required />
-  <br /><br />
-  <input type="checkbox" name="public_view" id="public_view" {% if public_view %}checked{% endif %}/> <label for="public_view">Should the email be public? (makes the non-user specific text viewable by anyone)</label>
-  <br /><br />
-  <label for="emailbody">
-  <strong>Body:</strong>
-  </label> <br />
-  <textarea cols="80" rows="20" name="body" id="emailbody">{{body}}</textarea>
-  <br />
+  <div id="email-fields-compact" class="email-fields-compact">
+    <div class="email-fields-row">
+      <div class="email-field">
+        <label for="from">From: <small>(If blank: {{ default_from }})</small></label>
+        <input type="text" name="from" id="from" value="{{from}}" pattern="(^.+@{{ current_site.domain|regexsite }}$)|(^.+<.+@{{ current_site.domain|regexsite }}>$)|(^.+@(\w+\.)?learningu\.org$)|(^.+<.+@(\w+\.)?learningu\.org>$)"/>
+      </div>
+      <div class="email-field">
+        <label for="replyto">Reply-To: <small>(If blank: same as "From")</small></label>
+        <input type="text" name="replyto" id="replyto" value="{{replyto}}" />
+      </div>
+      <div class="email-field email-field-subject">
+        <label for="subject">Subject:</label>
+        <input type="text" name="subject" id="subject" value="{{subject}}" required />
+      </div>
+    </div>
+    <div class="email-options-row">
+      <label class="checkbox-inline"><input type="checkbox" name="public_view" id="public_view" {% if public_view %}checked{% endif %}/> Should the email be public? (makes the non-user specific text viewable by anyone)</label>
+    </div>
+  </div>
+
+  <!-- Editor Mode Toggle -->
+  <div id="editor-mode-toggle">
+      <div class="btn-group" role="group">
+          <button type="button" class="btn btn-default" id="btn-simple-mode" onclick="espTemplateBuilder.switchMode('simple')">
+              Simple Editor
+          </button>
+          <button type="button" class="btn btn-default" id="btn-builder-mode" onclick="espTemplateBuilder.switchMode('builder')">
+              Template Builder
+          </button>
+      </div>
+      <button type="button" class="btn btn-default btn-xs" id="btn-take-tour" onclick="espEmailTour.start()">
+          <span class="glyphicon glyphicon-question-sign"></span> Take a Tour
+      </button>
+  </div>
+
+  <!-- Template Selector Gallery (shown in builder mode) -->
+  <div id="template-selector" style="display: none; position: relative;">
+      <button type="button" class="gallery-close-btn" onclick="espTemplateBuilder.hideGallery()" title="Close gallery">&times;</button>
+      <h4>Choose a starting template or start from scratch:</h4>
+      <p class="text-muted" style="font-size: 12px; margin-top: -10px;">
+          Pick a pre-built layout below, then customize it by dragging blocks from the right panel.
+          All templates include responsive email support and personalization variables.
+          Saved templates are <strong>shared across all programs</strong>.
+      </p>
+      <div id="template-category-tabs">
+          <button type="button" class="btn btn-xs btn-default active" onclick="espTemplateBuilder.filterCategory('')">All</button>
+          <button type="button" class="btn btn-xs btn-default" onclick="espTemplateBuilder.filterCategory('announcement')">Announcement</button>
+          <button type="button" class="btn btn-xs btn-default" onclick="espTemplateBuilder.filterCategory('registration')">Registration</button>
+          <button type="button" class="btn btn-xs btn-default" onclick="espTemplateBuilder.filterCategory('schedule')">Schedule</button>
+          <button type="button" class="btn btn-xs btn-default" onclick="espTemplateBuilder.filterCategory('reminder')">Reminder</button>
+          <button type="button" class="btn btn-xs btn-default" onclick="espTemplateBuilder.filterCategory('newsletter')">Newsletter</button>
+          <button type="button" class="btn btn-xs btn-default" onclick="espTemplateBuilder.filterCategory('custom')">Custom</button>
+      </div>
+      <div id="template-gallery"></div>
+      <button type="button" class="btn btn-default btn-start-blank" onclick="espTemplateBuilder.startBlank()">
+          <span class="glyphicon glyphicon-file"></span> Start from Scratch
+      </button>
+  </div>
+
+  <!-- Simple Editor (Jodit) -->
+  <div id="simple-editor-container">
+      <label for="emailbody">
+      <strong>Body:</strong>
+      </label> <br />
+      <textarea cols="80" rows="20" name="body" id="emailbody">{{body}}</textarea>
+  </div>
+
+  <!-- Template Builder (GrapesJS) -->
+  <div id="builder-container" style="display: none;">
+      <div class="builder-toolbar">
+          <div class="toolbar-row toolbar-row-primary">
+              <div class="toolbar-left">
+                  <div class="btn-group btn-group-xs device-btn-group">
+                      <button type="button" class="btn btn-default active" id="device-desktop" onclick="espTemplateBuilder.setDevice('Desktop')">
+                          <span class="glyphicon glyphicon-blackboard"></span> Desktop
+                      </button>
+                      <button type="button" class="btn btn-default" id="device-tablet" onclick="espTemplateBuilder.setDevice('Tablet')">
+                          <span class="glyphicon glyphicon-phone"></span> Tablet
+                      </button>
+                      <button type="button" class="btn btn-default" id="device-mobile" onclick="espTemplateBuilder.setDevice('Mobile')">
+                          <span class="glyphicon glyphicon-earphone"></span> Mobile
+                      </button>
+                  </div>
+                  <button type="button" class="btn btn-default btn-xs" onclick="espTemplateBuilder.showLivePreview()" title="Live Preview (Ctrl+Shift+P)">
+                      <span class="glyphicon glyphicon-eye-open"></span> Preview
+                  </button>
+                  <span id="autosave-status"></span>
+                  <span id="email-size-indicator" class="email-size-indicator" title="Compiled HTML size (Gmail clips at 102KB)"></span>
+              </div>
+              <div class="toolbar-right">
+                  <div class="btn-group btn-group-xs">
+                      <button type="button" class="btn btn-default" onclick="espTemplateBuilder.undo()" title="Undo (Ctrl+Z)">
+                          <span class="glyphicon glyphicon-arrow-left"></span>
+                      </button>
+                      <button type="button" class="btn btn-default" onclick="espTemplateBuilder.redo()" title="Redo (Ctrl+Shift+Z)">
+                          <span class="glyphicon glyphicon-arrow-right"></span>
+                      </button>
+                  </div>
+                  <span class="toolbar-separator"></span>
+                  <button type="button" class="btn btn-xs btn-warning" onclick="espTemplateBuilder.sendTestEmail()" title="Send test email to yourself">
+                      <span class="glyphicon glyphicon-send"></span> Test
+                  </button>
+                  <button type="button" class="btn btn-xs btn-default" onclick="espTemplateBuilder.checkCompatibility()" title="Check email client compatibility">
+                      <span class="glyphicon glyphicon-ok-circle"></span> Check
+                  </button>
+                  <div class="btn-group">
+                      <button type="button" class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown" title="Import / Export">
+                          <span class="glyphicon glyphicon-transfer"></span> I/O <span class="caret"></span>
+                      </button>
+                      <ul class="dropdown-menu pull-right">
+                          <li><a href="#" onclick="espTemplateBuilder.exportHTML(); return false;">Export as HTML</a></li>
+                          <li><a href="#" onclick="espTemplateBuilder.exportMJML(); return false;">Export as MJML</a></li>
+                          <li class="divider"></li>
+                          <li><a href="#" onclick="espTemplateBuilder.importMJML(); return false;">Import MJML...</a></li>
+                      </ul>
+                  </div>
+                  <span class="toolbar-separator"></span>
+                  <button type="button" class="btn btn-xs btn-primary" onclick="espTemplateBuilder.saveTemplate()" title="Save as Template (Ctrl+S)">
+                      <span class="glyphicon glyphicon-floppy-disk"></span> Save
+                  </button>
+                  <div class="btn-group btn-group-xs">
+                      <button type="button" class="btn btn-default" onclick="espTemplateBuilder.showVersionHistory()" title="Version History">
+                          <span class="glyphicon glyphicon-time"></span>
+                      </button>
+                      <button type="button" class="btn btn-default" onclick="espTemplateBuilder.showGallery()" title="Template Gallery">
+                          <span class="glyphicon glyphicon-th"></span>
+                      </button>
+                      <button type="button" class="btn btn-default" onclick="espTemplateBuilder.showBrandColors()" title="Brand Color Palette">
+                          <span class="glyphicon glyphicon-tint"></span>
+                      </button>
+                      <button type="button" class="btn btn-default" onclick="espTemplateBuilder.showShortcutsHelp()" title="Keyboard Shortcuts (?)">
+                          <span class="glyphicon glyphicon-question-sign"></span>
+                      </button>
+                  </div>
+              </div>
+          </div>
+      </div>
+      <div id="gjs-editor"></div>
+  </div>
+
+<!-- Hidden fields for GrapesJS state -->
+<input type="hidden" name="gjs_data" id="gjs_data" value="" />
+<input type="hidden" name="editor_mode" id="editor_mode" value="simple" />
+
+<!-- Draft Restore Modal (Bootstrap 2.x compatible) -->
+<div class="modal hide fade" id="draft-restore-modal" tabindex="-1" role="dialog">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">&times;</button>
+    <h4><span class="glyphicon glyphicon-floppy-disk"></span> Unsaved Draft Found</h4>
+  </div>
+  <div class="modal-body">
+    <p>You have an unsaved email draft from a previous session in the Template Builder. Would you like to restore it?</p>
+    <p class="text-muted" style="font-size: 12px;">If you discard, the draft will be permanently deleted.</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn" id="draft-discard-btn">Discard</button>
+    <button type="button" class="btn btn-primary" id="draft-restore-btn">
+      <span class="glyphicon glyphicon-open"></span> Restore Draft
+    </button>
+  </div>
+</div>
+
+<!-- Save Template Modal (Bootstrap 2.x compatible) -->
+<div class="modal hide fade" id="save-template-modal" tabindex="-1" role="dialog">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">&times;</button>
+    <h4><span class="glyphicon glyphicon-floppy-disk"></span> Save as Template</h4>
+  </div>
+  <div class="modal-body">
+    <div class="control-group">
+      <label class="control-label" for="save-tpl-name"><strong>Template Name:</strong></label>
+      <input type="text" id="save-tpl-name" style="width: 90%;" placeholder="e.g. Fall Welcome Email" />
+    </div>
+    <div class="control-group" style="margin-top: 10px;">
+      <label class="control-label" for="save-tpl-category"><strong>Category:</strong></label>
+      <select id="save-tpl-category">
+        <option value="announcement">Announcement</option>
+        <option value="registration">Registration</option>
+        <option value="schedule">Schedule</option>
+        <option value="reminder">Reminder</option>
+        <option value="newsletter">Newsletter</option>
+        <option value="custom" selected>Custom</option>
+      </select>
+    </div>
+    <div class="control-group" style="margin-top: 10px;">
+      <label class="control-label" for="save-tpl-desc"><strong>Description:</strong> <small>(optional)</small></label>
+      <textarea id="save-tpl-desc" style="width: 90%;" rows="2" placeholder="Brief description of this template"></textarea>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn" data-dismiss="modal">Cancel</button>
+    <button type="button" class="btn btn-primary" id="save-tpl-confirm">
+      <span class="glyphicon glyphicon-ok"></span> Save Template
+    </button>
+  </div>
+</div>
+
+<!-- Keyboard Shortcuts Help Modal -->
+<div class="modal hide fade" id="shortcuts-help-modal" tabindex="-1" role="dialog">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">&times;</button>
+    <h4><span class="glyphicon glyphicon-question-sign"></span> Keyboard Shortcuts</h4>
+  </div>
+  <div class="modal-body">
+    <table class="table table-condensed table-striped" style="margin-bottom:0;">
+      <tbody>
+        <tr><td style="width:160px;"><kbd>Ctrl+S</kbd> / <kbd>&#8984;+S</kbd></td><td>Save as Template</td></tr>
+        <tr><td><kbd>Ctrl+Shift+P</kbd></td><td>Live Preview</td></tr>
+        <tr><td><kbd>Ctrl+Z</kbd></td><td>Undo</td></tr>
+        <tr><td><kbd>Ctrl+Shift+Z</kbd></td><td>Redo</td></tr>
+        <tr><td><kbd>?</kbd></td><td>Show this help</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn" data-dismiss="modal">Close</button>
+  </div>
+</div>
+
+<!-- Live Preview Modal -->
+<div class="modal hide fade" id="preview-modal" tabindex="-1" role="dialog" style="width:900px; margin-left:-450px;">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">&times;</button>
+    <h4><span class="glyphicon glyphicon-eye-open"></span> Email Preview</h4>
+    <div style="display:flex; align-items:center; gap:12px; margin-top:5px; flex-wrap:wrap;">
+      <div class="btn-group btn-group-xs">
+        <button type="button" class="btn btn-default preview-device-btn active" data-width="100%" onclick="espTemplateBuilder.setPreviewWidth('100%', this)">
+          <span class="glyphicon glyphicon-blackboard"></span> Desktop
+        </button>
+        <button type="button" class="btn btn-default preview-device-btn" data-width="768px" onclick="espTemplateBuilder.setPreviewWidth('768px', this)">
+          <span class="glyphicon glyphicon-phone"></span> Tablet
+        </button>
+        <button type="button" class="btn btn-default preview-device-btn" data-width="375px" onclick="espTemplateBuilder.setPreviewWidth('375px', this)">
+          <span class="glyphicon glyphicon-earphone"></span> Mobile
+        </button>
+      </div>
+      <button type="button" class="btn btn-default btn-xs" onclick="$j('#preview-var-panel').slideToggle(200)">
+        <span class="glyphicon glyphicon-tags"></span> Variables
+      </button>
+    </div>
+  </div>
+  <div id="preview-var-panel" class="preview-var-panel" style="display:none;"></div>
+  <div class="modal-body" style="padding:0; text-align:center; background:#f0f0f0; overflow-x:auto;">
+    <iframe id="preview-iframe" style="width:100%; height:500px; border:none; background:#fff; transition:width 0.3s; margin:0 auto; display:block;"></iframe>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn" data-dismiss="modal">Close</button>
+  </div>
+</div>
+
+<!-- Import MJML Modal -->
+<div class="modal hide fade" id="import-mjml-modal" tabindex="-1" role="dialog">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">&times;</button>
+    <h4><span class="glyphicon glyphicon-import"></span> Import MJML</h4>
+  </div>
+  <div class="modal-body">
+    <p class="text-muted" style="font-size:12px;">Paste your MJML code below. This will replace the current editor content.</p>
+    <textarea id="import-mjml-textarea" style="width:100%; height:250px; font-family:monospace; font-size:12px;" placeholder="<mjml>&#10;  <mj-body>&#10;    ...&#10;  </mj-body>&#10;</mjml>"></textarea>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn" data-dismiss="modal">Cancel</button>
+    <button type="button" class="btn btn-primary" onclick="espTemplateBuilder.doImportMJML()">
+      <span class="glyphicon glyphicon-ok"></span> Import
+    </button>
+  </div>
+</div>
+
+<!-- Compatibility Checker Modal -->
+<div class="modal hide fade" id="compat-modal" tabindex="-1" role="dialog" style="width:700px; margin-left:-350px;">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">&times;</button>
+    <h4><span class="glyphicon glyphicon-ok-circle"></span> Email Compatibility Check</h4>
+  </div>
+  <div class="modal-body" style="max-height:400px; overflow-y:auto;">
+    <div id="compat-results"></div>
+    <p id="compat-size-info" class="text-muted" style="font-size:11px; margin-top:10px;"></p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn" data-dismiss="modal">Close</button>
+  </div>
+</div>
+
+<!-- Send Test Email Modal -->
+<div class="modal hide fade" id="test-email-modal" tabindex="-1" role="dialog">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">&times;</button>
+    <h4><span class="glyphicon glyphicon-send"></span> Send Test Email</h4>
+  </div>
+  <div class="modal-body">
+    <p>A test email will be compiled from the current template and sent with <code>[TEST]</code> in the subject line.</p>
+    <div style="margin: 10px 0;">
+      <label for="test-email-to" style="font-weight:normal; font-size:12px;">Send to (leave blank to use your account email):</label>
+      <input type="email" id="test-email-to" class="form-control input-sm" placeholder="your@email.com (optional)" style="max-width: 300px;" />
+    </div>
+    <p class="text-muted" style="font-size:12px;">The email will use the Subject, From, and Reply-To fields from the form above. Template variables (like names and schedules) will be filled with your own data.</p>
+    <div id="test-email-result"></div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn" data-dismiss="modal">Cancel</button>
+    <button type="button" class="btn btn-primary" id="send-test-confirm">
+      <span class="glyphicon glyphicon-send"></span> Send Test Email
+    </button>
+  </div>
+</div>
+
+<!-- Brand Colors Modal -->
+<div class="modal hide fade" id="brand-colors-modal" tabindex="-1" role="dialog" style="width:500px; margin-left:-250px;">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">&times;</button>
+    <h4><span class="glyphicon glyphicon-tint"></span> Brand Color Palette</h4>
+  </div>
+  <div class="modal-body">
+    <p class="text-muted" style="font-size:12px; margin-top:0;">Define your brand colors for quick reference while styling. Click a color swatch to change it. Colors are saved in your browser.</p>
+    <div id="brand-color-list"></div>
+    <div style="margin-top:10px;">
+      <button type="button" class="btn btn-xs btn-default" onclick="espTemplateBuilder._addBrandColor()">
+        <span class="glyphicon glyphicon-plus"></span> Add Color
+      </button>
+      <button type="button" class="btn btn-xs btn-link" onclick="espTemplateBuilder._resetBrandColors()" style="color:#999;">
+        Reset to defaults
+      </button>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn" data-dismiss="modal">Close</button>
+  </div>
+</div>
+
+<!-- Version History Modal -->
+<div class="modal hide fade" id="version-history-modal" tabindex="-1" role="dialog" style="width:600px; margin-left:-300px;">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">&times;</button>
+    <h4><span class="glyphicon glyphicon-time"></span> Template Version History</h4>
+  </div>
+  <div class="modal-body" style="max-height:400px; overflow-y:auto;">
+    <div id="version-history-list">
+      <p class="text-muted">Loading...</p>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn" data-dismiss="modal">Close</button>
+  </div>
+</div>
+
   </td>
 </tr>
 </table>
-
 <input type="submit" value="Go To Preview" name="submitform" class="btn btn-primary" />
 <input type="hidden" name="listcount" value="{{listcount}}" />
 <input type="hidden" name="selected" value="{{selected}}" />
@@ -100,7 +437,8 @@ Both email address fields also support named "mailboxes", such as "{{ default_fr
 </form>
 
 <script type="text/javascript">
-var editor = new Jodit("#emailbody", {
+// Initialize Jodit editor (Simple Mode)
+var joditEditor = new Jodit("#emailbody", {
   "enter": "P",
   "buttons": "source,|,bold,strikethrough,underline,italic,|,superscript,subscript,|,ul,ol,outdent,indent,align,|,font,fontsize,brush,paragraph,|,image,video,table,link,hr,|,undo,redo,cut,eraser,copyformat,|,symbol,fullsize,selectall,|",
   "toolbarAdaptive": false,
@@ -118,11 +456,11 @@ var editor = new Jodit("#emailbody", {
     },
     "defaultHandlerSuccess": function(data) {
       for (var i = 0; i < data.files.length; i++) {
-        editor.selection.insertImage(data.files[i]);
+        joditEditor.selection.insertImage(data.files[i]);
       }
     },
     "error": function(e) {
-      editor.events.fire("errorMessage", e.message || "Upload failed", "error", 4000);
+      joditEditor.events.fire("errorMessage", e.message || "Upload failed", "error", 4000);
     }
   },
   extraButtons: [
@@ -162,6 +500,17 @@ var editor = new Jodit("#emailbody", {
     }
   ],
 });
-espHandleBase64Paste(editor);
+espHandleBase64Paste(joditEditor);
+
+// Initialize the template builder module
+var espBuilderConfig = {
+    programUrl: '{{ program.getUrlBase }}',
+    initialEditorMode: '{{ editor_mode|default:"simple" }}',
+    initialGjsData: '{{ gjs_data|default:""|escapejs }}'
+};
+espTemplateBuilder.init(espBuilderConfig);
+
+// Initialize guided tour
+espEmailTour.init({ programUrl: espBuilderConfig.programUrl });
 </script>
 {% endblock %}

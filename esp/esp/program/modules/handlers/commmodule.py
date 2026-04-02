@@ -47,6 +47,7 @@ from django.template import Context as DjangoContext
 from django.template.loader import render_to_string
 from esp.middleware import ESPError
 from esp.utils.sanitize import strip_base64_images
+from django.http import JsonResponse
 
 import re
 
@@ -198,14 +199,23 @@ class CommModule(ProgramModuleObj):
 
         MessageRequest.assert_is_valid_sendto_fn_or_ESPError(sendto_fn_name)
 
-        # If they used the rich-text editor, we'll need to add <html> tags
-        if '<html>' not in body:
-            body = '<html>' + body + '</html>'
+        # GrapesJS template builder support
+        editor_mode = request.POST.get('editor_mode', 'simple')
+        gjs_data = request.POST.get('gjs_data', '')
 
-        # Use whichever template the user selected or the default (just an unsubscribe slug) if 'None'
-        template = request.POST.get('template', 'default')
-        rendered_text = render_to_string('email/{}_email.html'.format(template),
-                                        {'msgbody': body})
+        if editor_mode == 'builder':
+            # In builder mode, body is already compiled MJML->HTML (a full document).
+            # Use it directly without wrapping in an email template.
+            template = 'minimal'
+            rendered_text = body
+        else:
+            # Simple (Jodit) mode: existing behavior
+            if '<html>' not in body:
+                body = '<html>' + body + '</html>'
+            template = request.POST.get('template', 'default')
+            rendered_text = render_to_string('email/{}_email.html'.format(template),
+                                            {'msgbody': body})
+
         # Render the text for the first user
         contextdict = {'user'   : ActionHandler(firstuser, firstuser),
                        'program': ActionHandler(self.program, firstuser),
@@ -219,6 +229,9 @@ class CommModule(ProgramModuleObj):
             current_program_url
         )
 
+        # Warn if builder mode email is missing an unsubscribe link
+        missing_unsubscribe = (editor_mode == 'builder' and 'unsubscribe_link' not in body)
+
         return render_to_response(self.baseDir()+'preview.html', request,
                                               {'filterid': filterid,
                                                'sendto_fn_name': sendto_fn_name,
@@ -231,7 +244,10 @@ class CommModule(ProgramModuleObj):
                                                'body': body,
                                                'template': template,
                                                'rendered_text': rendered_text,
-                                               'other_program_urls': other_program_urls})
+                                               'other_program_urls': other_program_urls,
+                                               'editor_mode': editor_mode,
+                                               'gjs_data': gjs_data,
+                                               'missing_unsubscribe': missing_unsubscribe})
 
     @staticmethod
     def approx_num_of_recipients(filterObj, sendto_fn):
@@ -274,16 +290,24 @@ class CommModule(ProgramModuleObj):
         public_view = 'public_view' in request.POST
         template = request.POST.get('template', 'default')
 
+        # GrapesJS template builder support
+        editor_mode = request.POST.get('editor_mode', 'simple')
+        gjs_data = request.POST.get('gjs_data', '')
+
         current_program_url = self.program.getUrlBase()
         other_program_urls = _program_urls_in_text(
             (subject or '') + ' ' + (body or ''),
             current_program_url
         )
         if other_program_urls and not request.POST.get('confirm_send_with_other_program_links'):
-            rendered_text = render_to_string('email/{}_email.html'.format(template),
-                                             {'msgbody': body})
+            if editor_mode == 'builder':
+                rendered_text = body
+            else:
+                rendered_text = render_to_string('email/{}_email.html'.format(template),
+                                                 {'msgbody': body})
             listcount = request.POST.get('listcount', '')
             selected = request.POST.get('selected', '')
+            missing_unsubscribe = (editor_mode == 'builder' and 'unsubscribe_link' not in body)
             return render_to_response(self.baseDir() + 'preview.html', request, {
                 'filterid': filterid,
                 'sendto_fn_name': sendto_fn_name,
@@ -299,11 +323,18 @@ class CommModule(ProgramModuleObj):
                 'other_program_urls': other_program_urls,
                 'confirm_send_required': True,
                 'program': self.program,
+                'editor_mode': editor_mode,
+                'gjs_data': gjs_data,
+                'missing_unsubscribe': missing_unsubscribe,
             })
 
-        # Use whichever template the user selected or the default (just an unsubscribe slug) if 'None'
-        rendered_text = render_to_string('email/{}_email.html'.format(template),
-                                        {'msgbody': body})
+        if editor_mode == 'builder':
+            # In builder mode, body is already compiled MJML->HTML.
+            rendered_text = body
+        else:
+            # Use whichever template the user selected or the default (just an unsubscribe slug) if 'None'
+            rendered_text = render_to_string('email/{}_email.html'.format(template),
+                                            {'msgbody': body})
 
         try:
             filterid = int(filterid)
@@ -430,6 +461,262 @@ class CommModule(ProgramModuleObj):
 
         return render_to_response(self.baseDir()+'commpanel_new.html', request, context)
 
+    # --- Email Template Builder API Endpoints ---
+
+    @aux_call
+    @needs_admin
+    def email_template_list(self, request, tl, one, two, module, extra, prog):
+        """GET: Return JSON list of all active email templates for the template selector."""
+        from esp.dbmail.models import EmailTemplate
+
+        templates = EmailTemplate.objects.filter(is_active=True).select_related('creator')
+        category = request.GET.get('category')
+        if category:
+            templates = templates.filter(category=category)
+
+        data = []
+        for t in templates:
+            data.append({
+                'id': t.id,
+                'name': t.name,
+                'description': t.description,
+                'category': t.category,
+                'thumbnail': t.thumbnail,
+                'updated_at': t.updated_at.isoformat() if t.updated_at else '',
+                'creator_name': t.creator.first_name + ' ' + t.creator.last_name if t.creator else '',
+            })
+        return JsonResponse({'templates': data})
+
+    @aux_call
+    @needs_admin
+    def email_template_save(self, request, tl, one, two, module, extra, prog):
+        """POST: Save a new template or update an existing one."""
+        import reversion
+        from esp.dbmail.models import EmailTemplate
+
+        template_id = request.POST.get('id')
+        name = request.POST.get('name', '').strip()
+        if not name:
+            return JsonResponse({'success': False, 'error': 'Template name is required'}, status=400)
+
+        gjs_data = request.POST.get('gjs_data', '')
+        html_content = request.POST.get('html_content', '')
+        if not gjs_data or not html_content:
+            return JsonResponse({'success': False, 'error': 'Template data is required'}, status=400)
+
+        with reversion.create_revision():
+            if template_id:
+                try:
+                    template = EmailTemplate.objects.get(id=template_id, is_active=True)
+                except EmailTemplate.DoesNotExist:
+                    return JsonResponse({'success': False, 'error': 'Template not found'}, status=404)
+                template.name = name
+                template.description = request.POST.get('description', '')
+                template.category = request.POST.get('category', 'custom')
+                template.gjs_data = gjs_data
+                template.html_content = html_content
+                template.mjml_content = request.POST.get('mjml_content', '')
+                template.thumbnail = request.POST.get('thumbnail', '')
+                template.save()
+            else:
+                template = EmailTemplate.objects.create(
+                    name=name,
+                    description=request.POST.get('description', ''),
+                    category=request.POST.get('category', 'custom'),
+                    gjs_data=gjs_data,
+                    html_content=html_content,
+                    mjml_content=request.POST.get('mjml_content', ''),
+                    thumbnail=request.POST.get('thumbnail', ''),
+                    creator=request.user,
+                )
+            reversion.set_user(request.user)
+            reversion.set_comment("Saved from email template builder")
+
+        return JsonResponse({'success': True, 'id': template.id})
+
+    @aux_call
+    @needs_admin
+    def email_template_load(self, request, tl, one, two, module, extra, prog):
+        """GET: Load a single template's full data for the editor."""
+        from esp.dbmail.models import EmailTemplate
+
+        template_id = request.GET.get('id')
+        if not template_id:
+            return JsonResponse({'success': False, 'error': 'Template ID required'}, status=400)
+
+        try:
+            template = EmailTemplate.objects.get(id=template_id, is_active=True)
+        except EmailTemplate.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Template not found'}, status=404)
+
+        return JsonResponse({
+            'success': True,
+            'template': {
+                'id': template.id,
+                'name': template.name,
+                'description': template.description,
+                'category': template.category,
+                'gjs_data': template.gjs_data,
+                'html_content': template.html_content,
+                'mjml_content': template.mjml_content,
+            }
+        })
+
+    @aux_call
+    @needs_admin
+    def email_template_delete(self, request, tl, one, two, module, extra, prog):
+        """POST: Soft-delete a template by setting is_active=False."""
+        from esp.dbmail.models import EmailTemplate
+
+        template_id = request.POST.get('id')
+        if not template_id:
+            return JsonResponse({'success': False, 'error': 'Template ID required'}, status=400)
+
+        try:
+            template = EmailTemplate.objects.get(id=template_id, is_active=True)
+        except EmailTemplate.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Template not found'}, status=404)
+
+        template.is_active = False
+        template.save()
+        return JsonResponse({'success': True})
+
+    @aux_call
+    @needs_admin
+    def email_template_duplicate(self, request, tl, one, two, module, extra, prog):
+        """POST: Clone a template with a new name."""
+        from esp.dbmail.models import EmailTemplate
+
+        template_id = request.POST.get('id')
+        if not template_id:
+            return JsonResponse({'success': False, 'error': 'Template ID required'}, status=400)
+
+        try:
+            original = EmailTemplate.objects.get(id=template_id, is_active=True)
+        except EmailTemplate.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Template not found'}, status=404)
+
+        clone = EmailTemplate.objects.create(
+            name='%s (Copy)' % original.name,
+            description=original.description,
+            category=original.category,
+            gjs_data=original.gjs_data,
+            html_content=original.html_content,
+            mjml_content=original.mjml_content,
+            thumbnail=original.thumbnail,
+            creator=request.user,
+        )
+        return JsonResponse({'success': True, 'id': clone.id})
+
+    @aux_call
+    @needs_admin
+    def email_send_test(self, request, tl, one, two, module, extra, prog):
+        """POST: Send a test email to the logged-in user."""
+        from django.conf import settings
+        from django.core.mail import EmailMessage
+
+        subject = request.POST.get('subject', '(No Subject)')
+        body = request.POST.get('body', '')
+        fromemail = request.POST.get('from', '')
+        replytoemail = request.POST.get('replyto', '')
+
+        if not fromemail:
+            fromemail = '%s <%s@%s>' % (
+                Tag.getTag('full_group_name') or '%s %s' % (settings.INSTITUTION_NAME, settings.ORGANIZATION_SHORT_NAME),
+                "info", settings.SITE_INFO[1])
+        if not replytoemail:
+            replytoemail = fromemail
+
+        # Resolve template variables for the current user
+        contextdict = {
+            'user': ActionHandler(request.user, request.user),
+            'program': ActionHandler(self.program, request.user),
+            'request': ActionHandler(MessageRequest(), request.user),
+            'EMAIL_HOST_SENDER': settings.EMAIL_HOST_SENDER,
+        }
+        try:
+            rendered_body = Template(body).render(DjangoContext(contextdict))
+            rendered_subject = Template(subject).render(DjangoContext(contextdict))
+        except Exception:
+            rendered_body = body
+            rendered_subject = subject
+
+        # Allow sending to a custom email address (must still be an admin)
+        custom_to = request.POST.get('to', '').strip()
+        if custom_to and '@' in custom_to:
+            recipient = custom_to
+        else:
+            recipient = request.user.email
+        if not recipient:
+            return JsonResponse({'success': False, 'error': 'Your account has no email address'}, status=400)
+
+        try:
+            msg = EmailMessage(
+                subject='[TEST] %s' % rendered_subject,
+                body=rendered_body,
+                from_email=fromemail,
+                to=[recipient],
+                headers={'Reply-To': replytoemail},
+            )
+            msg.content_subtype = 'html'
+            msg.send()
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+        return JsonResponse({'success': True, 'sent_to': recipient})
+
+    @aux_call
+    @needs_admin
+    def email_template_versions(self, request, tl, one, two, module, extra, prog):
+        """GET: List version history for a template."""
+        from reversion.models import Version
+        from esp.dbmail.models import EmailTemplate
+
+        template_id = request.GET.get('id')
+        if not template_id:
+            return JsonResponse({'success': False, 'error': 'Template ID required'}, status=400)
+
+        try:
+            template = EmailTemplate.objects.get(id=template_id, is_active=True)
+        except EmailTemplate.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Template not found'}, status=404)
+
+        versions = Version.objects.get_for_object(template).order_by('-revision__date_created')[:20]
+        data = []
+        for v in versions:
+            data.append({
+                'id': v.id,
+                'date': v.revision.date_created.strftime('%Y-%m-%d %H:%M'),
+                'user': str(v.revision.user) if v.revision.user else 'Unknown',
+                'comment': v.revision.comment or '',
+            })
+        return JsonResponse({'success': True, 'versions': data})
+
+    @aux_call
+    @needs_admin
+    def email_template_restore_version(self, request, tl, one, two, module, extra, prog):
+        """POST: Restore a template to a specific version, returning its gjs_data."""
+        from reversion.models import Version
+        from esp.dbmail.models import EmailTemplate
+        import json
+
+        version_id = request.POST.get('version_id')
+        if not version_id:
+            return JsonResponse({'success': False, 'error': 'Version ID required'}, status=400)
+
+        try:
+            version = Version.objects.get(id=version_id)
+        except Version.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Version not found'}, status=404)
+
+        field_dict = version.field_dict
+        return JsonResponse({
+            'success': True,
+            'gjs_data': field_dict.get('gjs_data', ''),
+            'name': field_dict.get('name', ''),
+            'date': version.revision.date_created.strftime('%Y-%m-%d %H:%M'),
+        })
+
     @aux_call
     @needs_admin
     def maincomm2(self, request, tl, one, two, module, extra, prog):
@@ -445,6 +732,10 @@ class CommModule(ProgramModuleObj):
         selected = request.POST.get('selected')
         public_view = 'public_view' in request.POST
 
+        # GrapesJS template builder state round-trip
+        editor_mode = request.POST.get('editor_mode', 'simple')
+        gjs_data = request.POST.get('gjs_data', '')
+
         return render_to_response(self.baseDir()+'step2.html', request,
                                               {'listcount': listcount,
                                                'selected': selected,
@@ -455,7 +746,9 @@ class CommModule(ProgramModuleObj):
                                                'replyto': replytoemail,
                                                'subject': subject,
                                                'body': body,
-                                               'public_view': public_view})
+                                               'public_view': public_view,
+                                               'editor_mode': editor_mode,
+                                               'gjs_data': gjs_data})
 
     def isStep(self):
         return False

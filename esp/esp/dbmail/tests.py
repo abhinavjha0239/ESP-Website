@@ -39,7 +39,7 @@ from django.core import mail
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 
-from esp.dbmail.models import ActionHandler, MessageRequest, PlainRedirect, send_mail
+from esp.dbmail.models import ActionHandler, EmailTemplate, MessageRequest, PlainRedirect, send_mail
 from esp.tests.util import CacheFlushTestCase as TestCase
 from esp.users.models import ESPUser, PersistentQueryFilter
 
@@ -418,3 +418,69 @@ class MessageRequestAdminTest(TestCase):
         mr = MessageRequest.objects.filter(subject='Test subject').first()
         self.assertIsNotNone(mr)
         self.assertIsNone(mr.processed_by)
+
+
+# ---------------------------------------------------------------------------
+# Tests for GrapesJS Email Template Builder
+# ---------------------------------------------------------------------------
+
+class EmailTemplateModelTest(TestCase):
+    """Tests for the EmailTemplate model."""
+
+    def setUp(self):
+        super().setUp()
+        _setup_roles()
+        self.admin = ESPUser.objects.create_superuser(
+            username='template_admin',
+            email='admin@test.com',
+            password='password',
+        )
+
+    def test_create_template(self):
+        t = EmailTemplate.objects.create(
+            name='Test Template',
+            description='A test template',
+            category='announcement',
+            gjs_data='{"pages":[]}',
+            html_content='<html><body>Test</body></html>',
+            creator=self.admin,
+        )
+        self.assertEqual(t.name, 'Test Template')
+        self.assertEqual(t.category, 'announcement')
+        self.assertTrue(t.is_active)
+        self.assertIsNotNone(t.created_at)
+        self.assertIsNotNone(t.updated_at)
+        self.assertEqual(str(t), 'Test Template')
+
+    def test_soft_delete(self):
+        t = EmailTemplate.objects.create(
+            name='To Delete',
+            gjs_data='{}',
+            html_content='<html></html>',
+            creator=self.admin,
+        )
+        self.assertEqual(EmailTemplate.objects.filter(is_active=True).count(), 1)
+        t.is_active = False
+        t.save()
+        self.assertEqual(EmailTemplate.objects.filter(is_active=True).count(), 0)
+        self.assertEqual(EmailTemplate.objects.count(), 1)
+
+    def test_ordering_by_updated_at(self):
+        t1 = EmailTemplate.objects.create(
+            name='Old', gjs_data='{}', html_content='', creator=self.admin)
+        t2 = EmailTemplate.objects.create(
+            name='New', gjs_data='{}', html_content='', creator=self.admin)
+        templates = list(EmailTemplate.objects.all())
+        # Most recently created (t2) should come first
+        self.assertEqual(templates[0].name, 'New')
+        self.assertEqual(templates[1].name, 'Old')
+
+    def test_default_category_is_custom(self):
+        t = EmailTemplate.objects.create(
+            name='No Category', gjs_data='{}', html_content='', creator=self.admin)
+        self.assertEqual(t.category, 'custom')
+
+    def test_creator_can_be_null(self):
+        t = EmailTemplate.objects.create(
+            name='No Creator', gjs_data='{}', html_content='')
+        self.assertIsNone(t.creator)

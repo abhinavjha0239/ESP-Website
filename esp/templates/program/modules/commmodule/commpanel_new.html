@@ -6,6 +6,28 @@
 
 <h1>Communications Portal</h1>
 
+<!-- Draft notification modal -->
+<div class="modal hide fade" id="draft-notify-modal" tabindex="-1" role="dialog">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">&times;</button>
+    <h4><span class="glyphicon glyphicon-floppy-disk"></span> Unsaved Draft Found</h4>
+  </div>
+  <div class="modal-body">
+    <p>You have an unsaved email draft from a previous session in the Template Builder.</p>
+    <p>It will be available to restore when you reach the compose step.</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn" data-dismiss="modal">OK</button>
+  </div>
+</div>
+<script>
+try {
+    if (localStorage.getItem('esp_email_draft_{{ program.getUrlBase }}')) {
+        $j(function() { $j('#draft-notify-modal').modal('show'); });
+    }
+} catch(e) {}
+</script>
+
 <h2>Email a list of users</h2>
 <p>This page will help you email a set of users in your database, with filtering options specific to {{ program.niceName }}.  Choose from three different approaches to select your users:
     <ul>
